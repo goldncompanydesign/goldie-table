@@ -17,3 +17,25 @@ export interface SendMessageRequest {
   roomName: string;
   message: string;
 }
+
+/** 리포트 생성 결과 */
+export interface ReportResult {
+  message: string;
+  generatedBy: "llm" | "template";
+  generatedAt: string;
+}
+
+/** 웹훅 응답 */
+export interface WebhookResponse {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+/** Cron 실행 결과 */
+export interface CronExecutionResult {
+  success: boolean;
+  report?: ReportResult;
+  webhook?: WebhookResponse;
+  error?: string;
+}
