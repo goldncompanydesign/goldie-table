@@ -10,10 +10,7 @@ export const runtime = "nodejs";
 // 리포트 미리보기 (웹훅 전송 없이)
 export async function GET() {
   try {
-    const [price, news] = await Promise.all([
-      fetchGoldPrice(),
-      fetchGoldNews(3),
-    ]);
+    const [price, news] = await Promise.all([fetchGoldPrice(), fetchGoldNews(3)]);
 
     const report = await generateReport({ price, news });
 
@@ -43,10 +40,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const { sendToWebhook = false } = body as { sendToWebhook?: boolean };
 
-    const [price, news] = await Promise.all([
-      fetchGoldPrice(),
-      fetchGoldNews(3),
-    ]);
+    const [price, news] = await Promise.all([fetchGoldPrice(), fetchGoldNews(3)]);
 
     const report = await generateReport({ price, news });
 

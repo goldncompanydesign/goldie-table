@@ -21,9 +21,7 @@ const envSchema = z.object({
   CRON_SECRET: z.string().optional(),
 
   // 환경
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
 export type Env = z.infer<typeof envSchema>;

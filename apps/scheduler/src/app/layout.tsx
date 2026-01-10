@@ -5,11 +5,7 @@ export const metadata: Metadata = {
   description: "Gold market daily report automation",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <body>{children}</body>

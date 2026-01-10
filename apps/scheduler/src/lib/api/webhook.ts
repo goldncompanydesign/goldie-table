@@ -66,10 +66,7 @@ export async function sendWebhookMessage(
       }
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(
-        `웹훅 전송 실패 (시도 ${attempt + 1}/${retries}):`,
-        lastError.message
-      );
+      console.warn(`웹훅 전송 실패 (시도 ${attempt + 1}/${retries}):`, lastError.message);
 
       if (attempt < retries - 1) {
         await delay(retryDelay);

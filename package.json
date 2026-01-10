@@ -1,17 +1,32 @@
 {
   "name": "goldie-agent",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "turbo run typecheck",
+    "deploy:alpha": "vercel --cwd apps/scheduler",
+    "deploy:prod": "vercel --cwd apps/scheduler --prod",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
-    "turbo": "^2.3.3",
-    "typescript": "^5.7.2"
+    "@eslint/js": "^9.39.2",
+    "@next/eslint-plugin-next": "^16.1.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^17.0.0",
+    "prettier": "^3.7.4",
+    "turbo": "^2.7.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0",
+    "vercel": "^50.1.6"
   },
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=20"
   }

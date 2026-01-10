@@ -29,10 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 데이터 수집 (병렬 처리)
-    const [price, news] = await Promise.all([
-      fetchGoldPrice(),
-      fetchGoldNews(3),
-    ]);
+    const [price, news] = await Promise.all([fetchGoldPrice(), fetchGoldNews(3)]);
 
     console.log("금 시세 데이터 수집 완료:", { date: price.date, price: price.price });
     console.log("금 뉴스 데이터 수집 완료:", { count: news.length });

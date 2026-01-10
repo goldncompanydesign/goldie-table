@@ -47,8 +47,6 @@ export async function generateLLMReport(input: ReportInput): Promise<string> {
     model: openai("gpt-4o-mini"),
     system: SYSTEM_PROMPT,
     prompt: buildUserPrompt(input),
-    maxTokens: 800,
-    temperature: 0.7,
   });
 
   // 발송 시각 추가

@@ -20,10 +20,12 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "lint": "eslint --fix src",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .turbo node_modules"
   },
   "devDependencies": {
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2"
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   }
 }
