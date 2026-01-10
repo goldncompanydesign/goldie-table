@@ -113,8 +113,9 @@ function handleRequest(client) {
     }
     const json = JSON.parse(body.join(""));
 
-    // 메시지 전송
-    const success = Bot.send(json.roomName, json.message);
+    // 메시지 전송 (API 2 방식)
+    const bot = BotManager.getCurrentBot();
+    const success = bot.send(json.roomName, json.message);
 
     // 응답
     writer.println("HTTP/1.1 200 OK");
