@@ -221,7 +221,6 @@ function DoorResizeHandle({
         border: "2px solid #ffffff",
         zIndex: 20,
         boxShadow: "0 2px 8px rgba(49,130,246,0.4)",
-        cursor: handlePosition.cursor,
         ...handlePosition,
         ...style,
       }}
