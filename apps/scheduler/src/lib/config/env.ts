@@ -1,9 +1,18 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  // 사내 금 시세/뉴스 API
-  GOLD_API_BASE_URL: z.string().url(),
-  GOLD_API_KEY: z.string().optional(),
+  // 메시지 Provider 설정
+  MESSAGE_PROVIDER: z.enum(["email", "kakaotalk"]).default("email"),
+
+  // 이메일 Provider (Resend)
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
+  EMAIL_TO: z.string().optional(), // 콤마로 구분된 이메일 목록
+
+  // 카카오톡 Provider (안드로이드 봇 웹훅)
+  WEBHOOK_URL: z.string().url().optional(),
+  WEBHOOK_SECRET: z.string().optional(),
+  TARGET_ROOM_NAME: z.string().default("금시세알림방"),
 
   // LLM 설정 (Vercel AI SDK)
   OPENAI_API_KEY: z.string().optional(),
@@ -12,12 +21,7 @@ const envSchema = z.object({
     .default("false")
     .transform((v) => v === "true"),
 
-  // 안드로이드 봇 웹훅
-  WEBHOOK_URL: z.string().url(),
-  WEBHOOK_SECRET: z.string().optional(),
-
   // 스케줄러 설정
-  TARGET_ROOM_NAME: z.string().default("금시세알림방"),
   CRON_SECRET: z.string().optional(),
 
   // 환경

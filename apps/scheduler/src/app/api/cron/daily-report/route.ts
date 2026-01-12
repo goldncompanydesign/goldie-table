@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEnv, isProduction } from "@/lib/config/env";
 import { fetchGoldPrice } from "@/lib/api/gold-price";
-import { fetchGoldNews } from "@/lib/api/gold-news";
-import { sendWebhookMessage } from "@/lib/api/webhook";
+import { getMessageProvider } from "@/lib/providers";
 import { generateReport } from "@/lib/report/generator";
 import { getDailyReportDelay, delay, formatDelay } from "@/lib/scheduler/random-delay";
 
@@ -28,23 +27,25 @@ export async function GET(request: NextRequest) {
       await delay(delayMs);
     }
 
-    // 데이터 수집 (병렬 처리)
-    const [price, news] = await Promise.all([fetchGoldPrice(), fetchGoldNews(3)]);
-
-    console.log("금 시세 데이터 수집 완료:", { date: price.date, price: price.price });
-    console.log("금 뉴스 데이터 수집 완료:", { count: news.length });
-
-    // 리포트 생성
-    const report = await generateReport({ price, news });
-    console.log("리포트 생성 완료:", { generatedBy: report.generatedBy });
-
-    // 웹훅 전송
-    const webhookResult = await sendWebhookMessage({
-      roomName: env.TARGET_ROOM_NAME,
-      message: report.message,
+    // 금 시세 데이터 수집
+    const price = await fetchGoldPrice();
+    console.log("금 시세 데이터 수집 완료:", {
+      buyPrice: price.buyPrice.goldTaelPrice,
+      sellPrice: price.sellPrice.goldTaelPrice,
     });
 
-    console.log("웹훅 전송 완료:", webhookResult);
+    // 리포트 생성
+    const report = await generateReport({ price });
+    console.log("리포트 생성 완료:", { generatedBy: report.generatedBy });
+
+    // 메시지 전송 (Provider에 따라 이메일 또는 카카오톡)
+    const provider = getMessageProvider();
+    const sendResult = await provider.send({
+      message: report.message,
+      subject: `금 시세 리포트 - ${new Date().toLocaleDateString("ko-KR")}`,
+    });
+
+    console.log("메시지 전송 완료:", sendResult);
 
     return NextResponse.json({
       success: true,
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
         generatedAt: report.generatedAt,
         messageLength: report.message.length,
       },
-      webhook: webhookResult,
+      delivery: sendResult,
     });
   } catch (error) {
     console.error("일일 리포트 생성/전송 실패:", error);

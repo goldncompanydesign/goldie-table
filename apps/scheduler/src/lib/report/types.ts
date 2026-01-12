@@ -1,8 +1,7 @@
-import type { GoldPriceResponse, GoldNewsItem } from "@goldie/shared";
+import type { GoldPriceReport } from "@goldie/shared";
 
 export interface ReportInput {
-  price: GoldPriceResponse;
-  news: GoldNewsItem[];
+  price: GoldPriceReport;
 }
 
 export interface ReportOutput {

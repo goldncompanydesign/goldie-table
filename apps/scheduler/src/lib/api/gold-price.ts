@@ -1,5 +1,4 @@
-import type { GoldPriceResponse } from "@goldie/shared";
-import { getEnv } from "../config/env";
+import type { GoldPriceApiResponse, GoldPriceData, GoldPriceReport } from "@goldie/shared";
 
 export class GoldPriceApiError extends Error {
   constructor(
@@ -12,25 +11,78 @@ export class GoldPriceApiError extends Error {
   }
 }
 
-export async function fetchGoldPrice(): Promise<GoldPriceResponse> {
-  const env = getEnv();
+export class GoldApiClient {
+  private readonly baseUrl: string;
 
-  const response = await fetch(`${env.GOLD_API_BASE_URL}/gold/price`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(env.GOLD_API_KEY && { Authorization: `Bearer ${env.GOLD_API_KEY}` }),
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new GoldPriceApiError(
-      `금 시세 API 호출 실패: ${response.status} ${response.statusText}`,
-      response.status
-    );
+  constructor(baseUrl = "https://dev-internal-api.goldie.co.kr") {
+    this.baseUrl = baseUrl;
   }
 
-  const data = await response.json();
-  return data as GoldPriceResponse;
+  private async request<T>(endpoint: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new GoldPriceApiError(
+        `API 호출 실패: ${response.status} ${response.statusText}`,
+        response.status
+      );
+    }
+
+    return response.json();
+  }
+
+  /** 팔 때 시세 (매입가) */
+  async getCurrentPrice(): Promise<GoldPriceData> {
+    const result = await this.request<GoldPriceApiResponse>(
+      "/v1/api/global/gold-current-price"
+    );
+
+    if (result.code !== 200) {
+      throw new GoldPriceApiError(
+        `금 시세 API 오류: ${result.message}`,
+        result.code
+      );
+    }
+
+    return result.data;
+  }
+
+  /** 살 때 시세 (판매가) */
+  async getMarketPrice(): Promise<GoldPriceData> {
+    const result = await this.request<GoldPriceApiResponse>(
+      "/v1/api/global/gold-market-price"
+    );
+
+    if (result.code !== 200) {
+      throw new GoldPriceApiError(
+        `금 시세 API 오류: ${result.message}`,
+        result.code
+      );
+    }
+
+    return result.data;
+  }
+
+  /** 살 때 + 팔 때 시세 모두 조회 */
+  async getAllPrices(): Promise<GoldPriceReport> {
+    const [buyPrice, sellPrice] = await Promise.all([
+      this.getMarketPrice(),
+      this.getCurrentPrice(),
+    ]);
+
+    return { buyPrice, sellPrice };
+  }
+}
+
+// 싱글톤 인스턴스
+const goldApiClient = new GoldApiClient();
+
+export async function fetchGoldPrice(): Promise<GoldPriceReport> {
+  return goldApiClient.getAllPrices();
 }

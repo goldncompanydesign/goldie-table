@@ -1,57 +1,72 @@
-import type { GoldNewsItem } from "@goldie/shared";
 import { formatKRW, formatChange } from "@goldie/shared";
 import type { ReportInput } from "./types";
 
-function getTrendEmoji(change: number): string {
-  if (change > 0) return "📈";
-  if (change < 0) return "📉";
-  return "➖";
+function getKoreanDateWithDay(): string {
+  const now = new Date();
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+  const month = now.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric" }).replace("월", "");
+  const day = now.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", day: "numeric" }).replace("일", "");
+  const dayOfWeek = days[now.getDay()];
+  return `${month}월 ${day}일 ${dayOfWeek}요일`;
 }
 
-function formatNewsSection(news: GoldNewsItem[]): string {
-  if (news.length === 0) return "";
-
-  const newsItems = news
-    .map((item, index) => `${index + 1}. ${item.title}\n   ${item.summary}`)
-    .join("\n\n");
-
-  return `📰 오늘의 금 관련 뉴스\n${newsItems}`;
-}
-
-function getKoreanTime(): string {
-  return new Date().toLocaleTimeString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatNumber(n: number): string {
+  return new Intl.NumberFormat("ko-KR").format(n);
 }
 
 export function generateTemplateReport(input: ReportInput): string {
-  const { price, news } = input;
-  const trend = getTrendEmoji(price.change);
+  const { buyPrice, sellPrice } = input.price;
+
+  // buyPrice는 이미 부가세 포함 가격 → 부가세 제외 가격 계산
+  const goldWithVat = buyPrice.goldTaelPrice;
+  const goldWithoutVat = Math.round(buyPrice.goldTaelPrice / 1.1);
 
   const sections: string[] = [
     // 헤더
-    "🥇 금 시세 일일 리포트",
+    `[${getKoreanDateWithDay()}] 실시간 시세 입니다.`,
 
-    // 날짜
-    `📅 ${price.date}`,
-
-    // 시세 정보
+    // 부가세 금 시세 (살 때 - 부가세 제외/포함)
     [
-      `💰 현재가: ${formatKRW(price.price)}`,
-      `${trend} 전일대비: ${formatChange(price.change)} (${price.changeRate})`,
+      "[부가세 금 시세]",
+      `*${formatNumber(goldWithoutVat)}원 (부가세 포함 가격 : ${formatNumber(goldWithVat)})`,
+    ].join("\n"),
+
+    // 참고시세 (판매/매입)
+    [
+      "[참고시세]",
+      `*판매 ${formatNumber(buyPrice.goldTaelPrice)}`,
+      `*매입 ${formatNumber(sellPrice.goldTaelPrice)}`,
+    ].join("\n"),
+
+    // 은 시세
+    `은99% 매입 ${formatNumber(sellPrice.silverTaelPrice)}`,
+
+    // 연락처
+    [
+      "[연락처]",
+      "*부가금 구매 : 010-7128-1578",
+      "*고금 : 010-7128-1578",
+    ].join("\n"),
+
+    // 앱 다운로드
+    [
+      "",
+      "📱 골디 파트너 앱 다운로드",
+      "",
+      "*안드로이드(삼성):",
+      "https://bit.ly/4oKxpxj",
+      "",
+      "*아이폰:",
+      "https://bit.ly/3Lm5TYI",
+    ].join("\n"),
+
+    // 매뉴얼
+    [
+      "",
+      "📘 이용 매뉴얼",
+      "https://bit.ly/4399FuA",
     ].join("\n"),
   ];
-
-  // 뉴스 섹션 (있을 경우만)
-  const newsSection = formatNewsSection(news);
-  if (newsSection) {
-    sections.push(newsSection);
-  }
-
-  // 발송 시각
-  sections.push(`⏰ 발송 시각: ${getKoreanTime()}`);
 
   return sections.join("\n\n");
 }

@@ -1,25 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchGoldPrice } from "@/lib/api/gold-price";
-import { fetchGoldNews } from "@/lib/api/gold-news";
-import { sendWebhookMessage } from "@/lib/api/webhook";
+import { getMessageProvider } from "@/lib/providers";
 import { generateReport } from "@/lib/report/generator";
-import { getEnv } from "@/lib/config/env";
 
 export const runtime = "nodejs";
 
-// 리포트 미리보기 (웹훅 전송 없이)
+// 리포트 미리보기 (전송 없이)
 export async function GET() {
   try {
-    const [price, news] = await Promise.all([fetchGoldPrice(), fetchGoldNews(3)]);
-
-    const report = await generateReport({ price, news });
+    const price = await fetchGoldPrice();
+    const report = await generateReport({ price });
 
     return NextResponse.json({
       success: true,
-      data: {
-        price,
-        news,
-      },
+      data: { price },
       report,
     });
   } catch (error) {
@@ -34,29 +28,28 @@ export async function GET() {
   }
 }
 
-// 리포트 생성 + 웹훅 전송 (선택)
+// 리포트 생성 + 메시지 전송 (선택)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { sendToWebhook = false } = body as { sendToWebhook?: boolean };
+    const { send = false } = body as { send?: boolean };
 
-    const [price, news] = await Promise.all([fetchGoldPrice(), fetchGoldNews(3)]);
+    const price = await fetchGoldPrice();
+    const report = await generateReport({ price });
 
-    const report = await generateReport({ price, news });
-
-    let webhookResult = null;
-    if (sendToWebhook) {
-      const env = getEnv();
-      webhookResult = await sendWebhookMessage({
-        roomName: env.TARGET_ROOM_NAME,
+    let deliveryResult = null;
+    if (send) {
+      const provider = getMessageProvider();
+      deliveryResult = await provider.send({
         message: report.message,
+        subject: `금 시세 리포트 - ${new Date().toLocaleDateString("ko-KR")}`,
       });
     }
 
     return NextResponse.json({
       success: true,
       report,
-      webhook: webhookResult,
+      delivery: deliveryResult,
     });
   } catch (error) {
     console.error("리포트 생성/전송 실패:", error);
