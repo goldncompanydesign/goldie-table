@@ -394,6 +394,15 @@ export function OfficeLayout() {
     setPanOffset({ x: 0, y: 0 });
   };
 
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom((prev) => {
+      const newZoom = Math.max(0.5, Math.min(2, prev + delta));
+      return newZoom;
+    });
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (activeId) return;
     const target = e.target as HTMLElement;
@@ -491,6 +500,7 @@ export function OfficeLayout() {
             paddingRight: "200px",
           }}
           onMouseDown={handleMouseDown}
+          onWheel={handleWheel}
         >
           <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div
