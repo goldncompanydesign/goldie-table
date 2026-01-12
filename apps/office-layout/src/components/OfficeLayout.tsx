@@ -45,6 +45,7 @@ export function OfficeLayout() {
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -443,6 +444,21 @@ export function OfficeLayout() {
     };
   }, [isPanning, panStart, activeId]);
 
+  // 컨테이너 크기 추적
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight,
+        });
+      }
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
   const handleExportPNG = async () => {
     if (!canvasRef.current) return;
     try {
@@ -562,6 +578,18 @@ export function OfficeLayout() {
               ) : null}
             </DragOverlay>
           </DndContext>
+          {/* 미니맵 */}
+          {containerSize.width > 0 && (
+            <Minimap
+              canvasWidth={CANVAS_WIDTH}
+              canvasHeight={CANVAS_HEIGHT}
+              panOffset={panOffset}
+              zoom={zoom}
+              containerWidth={containerSize.width}
+              containerHeight={containerSize.height}
+              onPanChange={(newPanOffset) => setPanOffset(newPanOffset)}
+            />
+          )}
         </div>
         <div
           style={{
@@ -604,6 +632,90 @@ export function OfficeLayout() {
             />
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function Minimap({
+  canvasWidth,
+  canvasHeight,
+  panOffset,
+  zoom,
+  containerWidth,
+  containerHeight,
+  onPanChange,
+}: {
+  canvasWidth: number;
+  canvasHeight: number;
+  panOffset: { x: number; y: number };
+  zoom: number;
+  containerWidth: number;
+  containerHeight: number;
+  onPanChange: (offset: { x: number; y: number }) => void;
+}) {
+  const MINIMAP_SIZE = 200;
+  const MINIMAP_MARGIN = 16;
+  const scale = MINIMAP_SIZE / Math.max(canvasWidth, canvasHeight);
+
+  // 현재 뷰포트 영역 계산
+  const viewportWidth = containerWidth / zoom;
+  const viewportHeight = containerHeight / zoom;
+  const viewportX = (-panOffset.x + 32) / zoom; // margin 32px 고려
+  const viewportY = (-panOffset.y + 32) / zoom;
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+
+    // 클릭한 위치로 이동
+    const newPanX = -(x - viewportWidth / 2) * zoom + 32;
+    const newPanY = -(y - viewportHeight / 2) * zoom + 32;
+
+    onPanChange({ x: newPanX, y: newPanY });
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      style={{
+        position: "absolute",
+        bottom: MINIMAP_MARGIN,
+        right: MINIMAP_MARGIN,
+        width: MINIMAP_SIZE,
+        height: MINIMAP_SIZE,
+        background: "#ffffff",
+        border: "2px solid #e5e7eb",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        cursor: "pointer",
+        overflow: "hidden",
+        zIndex: 1000,
+      }}
+    >
+      {/* 전체 캔버스 미리보기 */}
+      <div
+        style={{
+          width: canvasWidth * scale,
+          height: canvasHeight * scale,
+          background: "#f8f9fa",
+          position: "relative",
+        }}
+      >
+        {/* 뷰포트 영역 표시 */}
+        <div
+          style={{
+            position: "absolute",
+            left: Math.max(0, viewportX * scale),
+            top: Math.max(0, viewportY * scale),
+            width: Math.min(viewportWidth * scale, canvasWidth * scale - Math.max(0, viewportX * scale)),
+            height: Math.min(viewportHeight * scale, canvasHeight * scale - Math.max(0, viewportY * scale)),
+            border: "2px solid #3182f6",
+            background: "rgba(49, 130, 246, 0.1)",
+            boxSizing: "border-box",
+          }}
+        />
       </div>
     </div>
   );
