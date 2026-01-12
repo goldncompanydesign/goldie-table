@@ -42,6 +42,31 @@ importers:
         specifier: ^50.1.6
         version: 50.1.6(rollup@4.55.1)(typescript@5.9.3)
 
+  apps/goldie-table:
+    dependencies:
+      next:
+        specifier: ^16.1.1
+        version: 16.1.1(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: ^19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: ^19.2.3
+        version: 19.2.3(react@19.2.3)
+    devDependencies:
+      '@types/node':
+        specifier: ^25.0.5
+        version: 25.0.5
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.7
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.7)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   apps/office-layout:
     dependencies:
       '@dnd-kit/core':
