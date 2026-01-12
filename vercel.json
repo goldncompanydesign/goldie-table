@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd apps/office-layout && next build",
-  "outputDirectory": "apps/office-layout/.next",
-  "installCommand": "pnpm install",
-  "framework": "nextjs"
-}
